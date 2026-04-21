@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router'
+import { HashRouter, Routes, Route } from 'react-router'
 import Dashboard from '@/components/Dashboard'
 import MotorcycleForm from '@/components/MotorcycleForm'
 import FuelRecordForm from '@/components/FuelRecordForm'
@@ -6,7 +6,7 @@ import FuelHistory from '@/components/FuelHistory'
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="mx-auto min-h-screen max-w-lg bg-background">
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -16,7 +16,7 @@ function App() {
           <Route path="/fuel/history/:motorcycleId" element={<FuelHistory />} />
         </Routes>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
