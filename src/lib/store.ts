@@ -116,3 +116,41 @@ export function estimateNextMaintenance(moto: Motorcycle): { date?: string; mile
 
   return result
 }
+
+// 导出数据为 JSON 文件
+export function exportData() {
+  const { motorcycles, fuelRecords, activeMotorcycleId } = useAppStore.getState()
+  const data = { motorcycles, fuelRecords, activeMotorcycleId }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `motorcycle-fuel-log-${new Date().toISOString().slice(0, 10)}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// 从 JSON 文件导入数据
+export function importData(file: File): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string)
+        if (!Array.isArray(data.motorcycles) || !Array.isArray(data.fuelRecords)) {
+          throw new Error('数据格式不正确')
+        }
+        useAppStore.setState({
+          motorcycles: data.motorcycles,
+          fuelRecords: data.fuelRecords,
+          activeMotorcycleId: data.activeMotorcycleId ?? data.motorcycles[0]?.id ?? null,
+        })
+        resolve()
+      } catch (err) {
+        reject(err)
+      }
+    }
+    reader.onerror = () => reject(new Error('文件读取失败'))
+    reader.readAsText(file)
+  })
+}

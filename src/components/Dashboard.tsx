@@ -1,6 +1,7 @@
-import { useAppStore } from '@/lib/store'
+import { useRef, useState } from 'react'
+import { useAppStore, exportData, importData } from '@/lib/store'
 import MotorcycleCard from './MotorcycleCard'
-import { Plus, Bike, Fuel } from 'lucide-react'
+import { Plus, Bike, Fuel, Download, Upload, EllipsisVertical } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 export default function Dashboard() {
@@ -8,6 +9,20 @@ export default function Dashboard() {
   const activeId = useAppStore((s) => s.activeMotorcycleId)
   const setActive = useAppStore((s) => s.setActiveMotorcycle)
   const navigate = useNavigate()
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      await importData(file)
+      alert('导入成功')
+    } catch {
+      alert('导入失败，请检查文件格式')
+    }
+    e.target.value = ''
+  }
 
   // 新用户 - 没有车辆
   if (motorcycles.length === 0) {
@@ -27,6 +42,14 @@ export default function Dashboard() {
           <Plus size={18} />
           添加摩托车
         </button>
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="mt-3 flex items-center gap-2 text-sm text-lime-600 hover:text-lime-700 transition-colors"
+        >
+          <Upload size={16} />
+          导入已有数据
+        </button>
+        <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
       </div>
     )
   }
@@ -52,12 +75,40 @@ export default function Dashboard() {
             </button>
           ))}
         </div>
-        <button
-          onClick={() => navigate('/motorcycle/add')}
-          className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full border border-lime-300 text-lime-600 hover:bg-lime-50 transition-colors"
-        >
-          <Plus size={16} />
-        </button>
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-lime-300 text-lime-600 hover:bg-lime-50 transition-colors"
+          >
+            <EllipsisVertical size={16} />
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} />
+              <div className="absolute right-0 top-10 z-30 w-36 rounded-lg border border-lime-100 bg-white py-1 shadow-lg">
+                <button
+                  onClick={() => { navigate('/motorcycle/add'); setMenuOpen(false) }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-lime-50 transition-colors"
+                >
+                  <Plus size={15} className="text-lime-600" /> 添加车辆
+                </button>
+                <button
+                  onClick={() => { exportData(); setMenuOpen(false) }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-lime-50 transition-colors"
+                >
+                  <Download size={15} className="text-lime-600" /> 导出数据
+                </button>
+                <button
+                  onClick={() => { fileRef.current?.click(); setMenuOpen(false) }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-lime-50 transition-colors"
+                >
+                  <Upload size={15} className="text-lime-600" /> 导入数据
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
       </div>
 
       {/* 车辆卡片 */}
